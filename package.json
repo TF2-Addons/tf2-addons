@@ -10,6 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "lowdb": "^1.0.0",
     "rcon-client": "^4.2.3",
     "reconnecting-websocket": "^4.4.0",
     "tail": "^2.0.4",

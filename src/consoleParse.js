@@ -2,6 +2,8 @@ const tf2Paths = require('./tf2Paths');
 const {Tail} = require('tail');
 const EventEmitter = require('events').EventEmitter;
 const logger = require('./logger');
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
 
 class ConsoleParse extends EventEmitter
 {
@@ -17,7 +19,12 @@ class ConsoleParse extends EventEmitter
                 interval: 250
             }
         });
+        logger.info(`Reading ${tf2Paths.log}`);
         const dateTimeRegex = new RegExp('^(\\d+\\/\\d+\\/\\d+ - \\d+:\\d+:\\d+): ');
+    
+        const adapter = new FileSync(`./logs/lines-${Date.now()}.json`);
+        const db = low(adapter);
+        db.defaults({lines: []}).write();
         
         let tailState = {
             buffer: '',
@@ -28,6 +35,13 @@ class ConsoleParse extends EventEmitter
         {
             const dateTimeMatch = dateTimeRegex.exec(data);
             let line = (!dateTimeMatch ? data : data.replace(dateTimeMatch[0], '')).trim();
+            
+            db.get('lines').push({
+                time: Date.now(),
+                raw: data,
+                parsed: line,
+                tailState
+            }).write();
             
             // If there's still an unfinished chat line going on (from a cheater), keep reading
             if(tailState.inChat)
