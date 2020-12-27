@@ -29,9 +29,12 @@ function getInvisibleSequence(length, others)
     do
     {
         str = '';
+        let last = '';
         for(let i = 0; i < length; i++)
         {
-            str += invisibleChars[Math.floor(Math.random() * invisibleChars.length)];
+            const filtered = invisibleChars.filter(c => c !== last);
+            last = filtered[Math.floor(Math.random() * filtered.length)];
+            str += last;
         }
     } while(others.indexOf(str) !== -1)
     return str;
