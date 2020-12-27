@@ -28,14 +28,12 @@ function getInvisibleSequence(length, others)
     let str;
     do
     {
-        str = '';
-        let last = '';
+        str = '\u200C';
         for(let i = 0; i < length; i++)
         {
-            const filtered = invisibleChars.filter(c => c !== last);
-            last = filtered[Math.floor(Math.random() * filtered.length)];
-            str += last;
+            str += invisibleChars[Math.floor(Math.random() * invisibleChars.length)];
         }
+        str += '\u200C';
     } while(others.indexOf(str) !== -1)
     return str;
 }
