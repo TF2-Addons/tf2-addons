@@ -2,7 +2,7 @@ const vorpal = require('@moleculer/vorpal')();
 const Transport = require('winston-transport');
 const {MESSAGE} = require('triple-beam');
 const rconManager = require('./rconManager');
-const {getName} = require('./gamestate');
+const {getName, getTaunts} = require('./gamestate');
 
 class VorpalTransport extends Transport
 {
@@ -30,6 +30,12 @@ vorpal.command('rcon <command...>', 'Run an RCON command and get output').action
 vorpal.command('name', 'Get the player name').action(async function(args, callback)
 {
     this.log(await getName());
+    callback();
+});
+
+vorpal.command('taunts', 'Get the player taunts').action(async function(args, callback)
+{
+    this.log(await getTaunts());
     callback();
 });
 
