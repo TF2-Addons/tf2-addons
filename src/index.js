@@ -6,7 +6,15 @@ const logger = require('./logger');
 
 (async () =>
 {
-    await rconManager.connect('localhost', 27015, 'tf2addons');
+    try
+    {
+        await rconManager.connect('localhost', 27015, 'tf2addons');
+    }
+    catch(e)
+    {
+        logger.error('Could not connect to rcon. Make sure TF2 is running with the right arguments');
+        return;
+    }
     logger.info('Finished connecting to rcon');
     
     const replacements = await updateLocalizations();
