@@ -1,5 +1,5 @@
 const rconManager = require('./rconManager');
-const updateLocalizations = require('./updateLocalizations');
+const {updateLocalizations} = require('./updateLocalizations');
 const consoleParse = require('./consoleParse');
 const syncClient = require('./syncClient');
 const logger = require('./logger');

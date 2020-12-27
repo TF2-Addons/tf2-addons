@@ -6,6 +6,7 @@ const awaitTimeout = require('./awaitTimeout');
 
 // From https://github.com/PazerOP/tf2_bot_detector/blob/master/tf2_bot_detector/Config/ChatWrappers.cpp
 const invisibleChars = ['\u200B', '\u200C', '\u200D', '\u2060', '\uFEFF'];
+const invisibleCharRegex = new RegExp(`[${invisibleChars.join('')}]+`, 'g');
 
 async function getLanguage()
 {
@@ -41,6 +42,16 @@ function removeInvisibleSequence(line)
     for(const char of invisibleChars)
     {
         line = line.split(char).join('');
+    }
+    return line;
+}
+
+function replaceInvisibleSequence(line)
+{
+    line = line.replace(invisibleCharRegex, '{$&}');
+    for(let i = 0; i < invisibleChars.length; i++)
+    {
+        line = line.split(invisibleChars[i]).join(String.fromCharCode(97 + i));
     }
     return line;
 }
@@ -150,4 +161,4 @@ async function updateLocalizations()
     return results;
 }
 
-module.exports = updateLocalizations;
+module.exports = {updateLocalizations, replaceInvisibleSequence};

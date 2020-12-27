@@ -2,6 +2,7 @@ const tf2Paths = require('./tf2Paths');
 const {Tail} = require('tail');
 const EventEmitter = require('events').EventEmitter;
 const logger = require('./logger');
+const {replaceInvisibleSequence} = require('./updateLocalizations');
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 
@@ -25,7 +26,12 @@ class ConsoleParse extends EventEmitter
     
         const adapter = new FileSync(`./logs/lines-${Date.now()}.json`);
         const db = low(adapter);
-        db.defaults({lines: []}).write();
+        
+        db.defaults({
+            lines: [],
+            replacements,
+            parsedReplacements: JSON.parse(replaceInvisibleSequence(JSON.stringify(replacements)))
+        }).write();
         
         let tailState = {
             buffer: '',
@@ -40,7 +46,7 @@ class ConsoleParse extends EventEmitter
             db.get('lines').push({
                 time: Date.now(),
                 raw: data,
-                parsed: line,
+                parsed: replaceInvisibleSequence(line),
                 tailState: JSON.parse(JSON.stringify(tailState))
             }).write();
             
