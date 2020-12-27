@@ -1,6 +1,7 @@
 const vorpal = require('@moleculer/vorpal')();
 const Transport = require('winston-transport');
 const {MESSAGE} = require('triple-beam');
+const rconManager = require('./rconManager');
 
 class VorpalTransport extends Transport
 {
@@ -17,6 +18,13 @@ class VorpalTransport extends Transport
         callback();
     }
 }
+
+vorpal.command('rcon <command...>', 'Run an RCON command and get output').action(async function(args, callback)
+{
+    const data = await rconManager.send(args.command.join(' '));
+    this.log(JSON.stringify(data));
+    callback();
+});
 
 vorpal.delimiter('tf2addons$').show();
 
