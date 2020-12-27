@@ -47,7 +47,7 @@ class ConsoleParse extends EventEmitter
                 time: Date.now(),
                 raw: data,
                 parsed: replaceInvisibleSequence(line),
-                tailState: JSON.parse(JSON.stringify(tailState))
+                tailState: (tailState.buffer.length > 0 ? JSON.parse(JSON.stringify(tailState)) : undefined)
             }).write();
             
             // If there's still an unfinished chat line going on (from a cheater), keep reading
