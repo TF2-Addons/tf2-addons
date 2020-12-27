@@ -22,6 +22,7 @@ const logger = require('./logger');
         
         if(data.action === 'taunt')
         {
+            rconManager.send('-attack');
             rconManager.send('taunt');
         }
         else if(data.action === 'kill')

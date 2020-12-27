@@ -12,6 +12,7 @@ class ConsoleParse extends EventEmitter
         this.replacements = replacements;
         this.connectedRegex = new RegExp('Connected to (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,6})');
         this.addonRegex = new RegExp('!tf2addons\\[(.+?)\\]');
+        this.killRegex = new RegExp('(.+?) killed (.+?) with (.+?)\\.');
         
         this.logTail = new Tail(tf2Paths.log, {
             useWatchFile: true,
@@ -40,7 +41,7 @@ class ConsoleParse extends EventEmitter
                 time: Date.now(),
                 raw: data,
                 parsed: line,
-                tailState
+                tailState: JSON.parse(JSON.stringify(tailState))
             }).write();
             
             // If there's still an unfinished chat line going on (from a cheater), keep reading
@@ -114,6 +115,18 @@ class ConsoleParse extends EventEmitter
                 this.emit('addon-data', {
                     full: addonData[1],
                     data: addonData[1].split(',')
+                });
+                return;
+            }
+    
+            const killData = this.killRegex.exec(line);
+            if(killData)
+            {
+                this.emit('kill', {
+                    chat: line,
+                    killer: killData[1],
+                    killed: killData[2],
+                    weapon: killData[3]
                 });
                 return;
             }
