@@ -3,6 +3,7 @@ const {updateLocalizations} = require('./updateLocalizations');
 const consoleParse = require('./consoleParse');
 const syncClient = require('./syncClient');
 const logger = require('./logger');
+require('./cli');
 
 (async () =>
 {
