@@ -55,7 +55,8 @@ class ConsoleParse extends EventEmitter
             {
                 logger.warn('Still reading chat');
                 console.log(this.replacements);
-                if(line.endsWith(this.replacements.chat[tailState.messageType].end))
+                const replacement = this.replacements.chat.filter(r => r.type === tailState.messageType)[0];
+                if(line.endsWith(replacement.end))
                 {
                     this.emit('chat', {
                         type: tailState.messageType,
