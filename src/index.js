@@ -3,7 +3,8 @@ const {updateLocalizations} = require('./updateLocalizations');
 const consoleParse = require('./consoleParse');
 const syncClient = require('./syncClient');
 const logger = require('./logger');
-require('./cli');
+const {onCLIReady} = require('./cli');
+const gamestate = require('./gamestate');
 
 (async () =>
 {
@@ -69,4 +70,20 @@ require('./cli');
             syncClient.send({action: 'tauntkill', timeout: data[1]});
         }
     });
+    
+    //TODO add option
+    const syncTauntOnKill = true;
+    if(syncTauntOnKill)
+    {
+        const name = await gamestate.getName();
+        consoleParse.on('kill', ({killer}) =>
+        {
+            if(killer === name)
+            {
+                syncClient.send({action: 'taunt'});
+            }
+        });
+    }
+    
+    onCLIReady();
 })();

@@ -39,6 +39,9 @@ vorpal.command('taunts', 'Get the player taunts').action(async function(args, ca
     callback();
 });
 
-vorpal.delimiter('tf2addons$').show();
+function onCLIReady()
+{
+    vorpal.delimiter('tf2addons$').show();
+}
 
-module.exports = {VorpalTransport, vorpal};
+module.exports = {VorpalTransport, vorpal, onCLIReady};
