@@ -1,24 +1,6 @@
-const vorpal = require('@moleculer/vorpal')();
-const Transport = require('winston-transport');
-const {MESSAGE} = require('triple-beam');
-const rconManager = require('./rconManager');
-const gameState = require('./gameState');
-
-class VorpalTransport extends Transport
-{
-    constructor(opts)
-    {
-        super(opts);
-    }
-    
-    log(info, callback)
-    {
-        setImmediate(() => this.emit('logged', info));
-        
-        vorpal.log(info[MESSAGE]);
-        callback();
-    }
-}
+const {vorpal} = require('./vorpalManager');
+const rconManager = require('../rconManager');
+const gameState = require('../gameState');
 
 vorpal.command('rcon <command...>', 'Run an RCON command and get output').action(async function(args, callback)
 {
@@ -50,10 +32,3 @@ vorpal.command('echo <message...>', 'Echo test').action(async function(args, cal
     await rconManager.send(`wait 1; echo "${args.message.join(' ')}                                                                                                                                                                                                                                                  tf2addons-ui"`);
     callback();
 });
-
-function onCLIReady()
-{
-    vorpal.delimiter('tf2addons$').show();
-}
-
-module.exports = {VorpalTransport, vorpal, onCLIReady};

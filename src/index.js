@@ -3,7 +3,8 @@ const {updateLocalizations} = require('./updateLocalizations');
 const consoleParse = require('./consoleParse');
 const syncClient = require('./syncClient');
 const logger = require('./logger');
-const {onCLIReady} = require('./cli');
+const {onCLIReady} = require('./cli/vorpalManager');
+require('./cli/commands');
 const gameState = require('./gameState');
 
 (async () =>
