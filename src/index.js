@@ -75,6 +75,15 @@ const gameState = require('./gameState');
         }
     });
     
+    gameState.on('player-join', player =>
+    {
+        logger.info(`Join: ${player.name}`);
+    });
+    gameState.on('player-leave', player =>
+    {
+        logger.info(`Leave: ${player.name}`);
+    });
+    
     //TODO add option
     const syncTauntOnKill = true;
     if(syncTauntOnKill)

@@ -1,5 +1,6 @@
 const rconManager = require('./rconManager');
 const consoleParse = require('./consoleParse');
+const logger = require('./logger');
 const EventEmitter = require('events').EventEmitter;
 
 class GameState extends EventEmitter
@@ -9,15 +10,69 @@ class GameState extends EventEmitter
         super();
         this.lobbyIDRegex = new RegExp('ID:([\\w\\d]+)');
         this.lobbyPlayerRegex = new RegExp('(Member|Pending)\\[(\\d+)\\]\\s+(\\[.+?\\])\\s+team = (\\w+)\\s+type = (\\w+)');
-        
+    
         this.kills = [];
         this.players = [];
         this.chat = [];
+        this.status = null;
         
         consoleParse.on('kill', killData =>
         {
             this.kills.push(killData);
         });
+        
+        setInterval(async () =>
+        {
+            const lobby = await this.getLobbyDebug();
+            if(lobby === null)
+            {
+                logger.warn('Clearing game for bad lobby');
+                this.clearGame();
+                return;
+            }
+            const statusData = await this.getStatus();
+            if(statusData.players.length === 0)
+            {
+                logger.warn('Clearing game for bad status');
+                this.clearGame();
+                return;
+            }
+            
+            const newPlayers = statusData.players.map(player =>
+            {
+                player.team = lobby.members.filter(member => member.id === player.id);
+                return player;
+            });
+            const playersJoined = newPlayers.filter(newPlayer => this.players.filter(oldPlayer => oldPlayer.id === newPlayer.id).length > 0);
+            const playersLeft = this.players.filter(oldPlayer => newPlayers.filter(newPlayer => newPlayer.id === oldPlayer.id).length === 0);
+            for(const joined of playersJoined)
+            {
+                this.emit('player-join', joined);
+            }
+            for(const left of playersLeft)
+            {
+                this.emit('player-leave', left);
+            }
+            this.players = newPlayers;
+            this.emit('players', newPlayers);
+            this.emit('status', statusData.meta);
+        }, 1500);
+    }
+    
+    clearGame()
+    {
+        if(this.players.length > 0)
+        {
+            this.emit('players', []);
+        }
+        if(this.status !== null)
+        {
+            this.emit('status', null);
+        }
+        this.kills = [];
+        this.players = [];
+        this.chat = [];
+        this.status = null;
     }
     
     async getName()
