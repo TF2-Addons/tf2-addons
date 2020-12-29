@@ -34,13 +34,14 @@ vorpal.command('echo <message...>', 'Echo test').action(async function(args, cal
     callback();
 });
 
-vorpal.command('status', 'Get game status').action(function(args, callback)
+vorpal.command('status', 'Get game status').action(async function(args, callback)
 {
-    consoleParse.once('status', status =>
-    {
-        this.log(JSON.stringify(status, null, 4));
-        callback();
-    });
-    consoleParse.statusFlag = true;
-    rconManager.send('status; wait 20; echo end-status');
+    this.log(await gameState.getStatus());
+    callback();
+});
+
+vorpal.command('lobby', 'Get game lobby').action(async function(args, callback)
+{
+    this.log(await gameState.getLobbyDebug());
+    callback();
 });
