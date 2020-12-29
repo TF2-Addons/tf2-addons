@@ -4,7 +4,7 @@ const consoleParse = require('./consoleParse');
 const syncClient = require('./syncClient');
 const logger = require('./logger');
 const {onCLIReady} = require('./cli');
-const gamestate = require('./gamestate');
+const gameState = require('./gameState');
 
 (async () =>
 {
@@ -18,6 +18,9 @@ const gamestate = require('./gamestate');
         return;
     }
     logger.info('Finished connecting to rcon');
+    await rconManager.send('con_filter_enable 1');
+    await rconManager.send('con_filter_text "tf2addons-ui"');
+    await rconManager.send('developer 1');
     
     const replacements = await updateLocalizations();
     logger.info('Updated localizations');
@@ -75,7 +78,7 @@ const gamestate = require('./gamestate');
     const syncTauntOnKill = true;
     if(syncTauntOnKill)
     {
-        const name = await gamestate.getName();
+        const name = await gameState.getName();
         consoleParse.on('kill', ({killer}) =>
         {
             if(killer === name)
