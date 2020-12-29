@@ -102,9 +102,13 @@ class ConsoleParse extends EventEmitter
                     this.statusTemp.players.push(this.parseStatusPlayer(line));
                     return;
                 }
-                this.statusFlag = false;
-                this.emit('status', this.statusTemp);
-                this.statusTemp = {meta: {}, players: []};
+                
+                if(line === 'tf2addons-end-status')
+                {
+                    this.statusFlag = false;
+                    this.emit('status', this.statusTemp);
+                    this.statusTemp = {meta: {}, players: []};
+                }
             }
             
             // Check for a known chat format
