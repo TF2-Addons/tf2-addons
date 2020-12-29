@@ -8,13 +8,21 @@ const FileSync = require('lowdb/adapters/FileSync');
 
 class ConsoleParse extends EventEmitter
 {
-    begin(replacements)
+    constructor()
     {
-        this.replacements = replacements;
+        super();
         this.connectedRegex = new RegExp('Connected to (\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,6})');
         this.addonRegex = new RegExp('!tf2addons\\[(.+?)\\]');
         this.killRegex = new RegExp('(.+?) killed (.+?) with (.+?)\\.');
-        
+        this.nameIdRegex = new RegExp('#\\s*(\\d+)\\s*"(.+)"');
+        this.statusLabels = ['hostname', 'version', 'udp/ip', 'steamid', 'account', 'map', 'tags', 'players', 'edicts'];
+        this.statusTemp = {meta: {}, players: []};
+        this.statusFlag = false;
+    }
+    
+    begin(replacements)
+    {
+        this.replacements = replacements;
         this.logTail = new Tail(tf2Paths.log, {
             useWatchFile: true,
             fsWatchOptions: {
@@ -70,6 +78,34 @@ class ConsoleParse extends EventEmitter
                     tailState.buffer += line + '\n';
                 }
                 return;
+            }
+            
+            // See if currently parsing status
+            if(this.statusFlag)
+            {
+                // Check first part of status
+                for(const statusLabel of this.statusLabels)
+                {
+                    if(line.startsWith(statusLabel))
+                    {
+                        this.statusTemp.meta[statusLabel] = line.substring(line.indexOf(': ') + 2);
+                        return;
+                    }
+                }
+    
+                if(line.startsWith('#'))
+                {
+                    if(line.endsWith('state'))
+                    {
+                        // Skip the line with table headers
+                        return;
+                    }
+                    this.statusTemp.players.push(this.parseStatusPlayer(line));
+                    return;
+                }
+                this.statusFlag = false;
+                this.emit('status', this.statusTemp);
+                this.statusTemp = {meta: {}, players: []};
             }
             
             // Check for a known chat format
@@ -151,6 +187,61 @@ class ConsoleParse extends EventEmitter
     getName(text)
     {
         return text.split(this.replacements.name.start)[1].split(this.replacements.name.end)[0];
+    }
+    
+    parseStatusPlayer(line)
+    {
+        const sections = ['name', 'uniqueid', 'connected', 'ping', 'loss', 'state'];
+        const allowedSpaces = ['name'];
+        const state = {
+            section: sections.length - 1,
+            spaceUntilNext: false,
+            parts: sections.reduce((acc, val) =>
+            {
+                acc[val] = '';
+                return acc;
+            }, {})
+        };
+        // Parse the line backwards such that strange names won't mess up the parsing
+        // Thanks Steam for allowing quotes in usernames
+        for(let i = line.length - 1; i >= 0; i--)
+        {
+            const ch = line[i];
+            if(ch === ' ')
+            {
+                if(state.spaceUntilNext)
+                {
+                    continue;
+                }
+                // If spaces aren't allowed for this section, move to the next one
+                if(allowedSpaces.indexOf(sections[state.section]) === -1)
+                {
+                    if(state.section === 0)
+                    {
+                        return state.parts;
+                    }
+                    state.spaceUntilNext = true;
+                    state.section--;
+                    continue;
+                }
+            }
+            state.spaceUntilNext = false;
+            
+            // If it's a bot, skip straight to uniqueid
+            if(sections[state.section] === 'loss' && ch === 'T')
+            {
+                state.section = sections.indexOf('uniqueid');
+            }
+            
+            state.parts[sections[state.section]] = ch + state.parts[sections[state.section]];
+        }
+        
+        const [id, name] = this.nameIdRegex.exec(state.parts['name']).splice(1);
+        return {
+            ...state.parts,
+            id,
+            name
+        };
     }
 }
 

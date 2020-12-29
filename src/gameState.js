@@ -9,6 +9,8 @@ class GameState extends EventEmitter
         super();
         
         this.kills = [];
+        this.players = [];
+        this.chat = [];
         
         consoleParse.on('kill', killData =>
         {

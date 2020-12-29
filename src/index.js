@@ -19,9 +19,9 @@ const gameState = require('./gameState');
         return;
     }
     logger.info('Finished connecting to rcon');
-    await rconManager.send('con_filter_enable 1');
-    await rconManager.send('con_filter_text "tf2addons-ui"');
-    await rconManager.send('developer 1');
+    //await rconManager.send('con_filter_enable 1');
+    //await rconManager.send('con_filter_text "tf2addons-ui"');
+    //await rconManager.send('developer 1');
     
     const replacements = await updateLocalizations();
     logger.info('Updated localizations');

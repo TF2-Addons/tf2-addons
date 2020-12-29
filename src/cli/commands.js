@@ -1,6 +1,7 @@
 const {vorpal} = require('./vorpalManager');
 const rconManager = require('../rconManager');
 const gameState = require('../gameState');
+const consoleParse = require('../consoleParse');
 
 vorpal.command('rcon <command...>', 'Run an RCON command and get output').action(async function(args, callback)
 {
@@ -31,4 +32,15 @@ vorpal.command('echo <message...>', 'Echo test').action(async function(args, cal
 {
     await rconManager.send(`wait 1; echo "${args.message.join(' ')}                                                                                                                                                                                                                                                  tf2addons-ui"`);
     callback();
+});
+
+vorpal.command('status', 'Get game status').action(function(args, callback)
+{
+    consoleParse.once('status', status =>
+    {
+        this.log(JSON.stringify(status, null, 4));
+        callback();
+    });
+    consoleParse.statusFlag = true;
+    rconManager.send('status; wait 20; echo end-status');
 });
