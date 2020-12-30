@@ -40,7 +40,30 @@ const gameState = require('./gameState');
         const started = Date.now();
         if(data.action === 'taunt')
         {
-            await rconManager.send('-attack; taunt');
+            // Check if too far away to taunt
+            if(Array.isArray(data.position))
+            {
+                if(gameState.pos === null)
+                {
+                    logger.warn('Unable to taunt - position was null');
+                }
+                else
+                {
+                    const distance = Math.sqrt(
+                        Math.pow(data.position[0] - gameState.pos.pos[0], 2) +
+                        Math.pow(data.position[1] - gameState.pos.pos[1], 2) +
+                        Math.pow(3 * (data.position[2] - gameState.pos.pos[2]), 2));
+                    logger.info(`Distance from taunt source was ${distance} (${distance >= 500 ? 'too far' : 'good'})`);
+                    if(distance >= 500)
+                    {
+                        await rconManager.send('-attack; taunt');
+                    }
+                }
+            }
+            else
+            {
+                await rconManager.send('-attack; taunt');
+            }
         }
         else if(data.action === 'kill')
         {
@@ -100,7 +123,7 @@ const gameState = require('./gameState');
             {
                 killStarted = Date.now();
                 logger.info(`Killed ${killed} at ${killStarted}`);
-                syncClient.send({action: 'taunt'});
+                syncClient.send({action: 'taunt', position: gameState.pos.pos});
             }
         });
     }

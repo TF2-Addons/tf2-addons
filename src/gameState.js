@@ -16,6 +16,7 @@ class GameState extends EventEmitter
         this.players = [];
         this.chat = [];
         this.status = null;
+        this.pos = null;
         this.monitorStatus = false;
         
         consoleParse.on('kill', killData =>
@@ -108,6 +109,10 @@ class GameState extends EventEmitter
                     this.players = newPlayers;
                     this.emit('players', newPlayers);
                     this.emit('status', statusData.meta);
+                    
+                    // Get the position
+                    this.pos = await this.getPos();
+                    this.emit('pos', this.pos);
                 }
                 catch(ignored) {}
             }
@@ -128,6 +133,7 @@ class GameState extends EventEmitter
         this.players = [];
         this.chat = [];
         this.status = null;
+        this.pos = null;
     }
     
     async getName()
