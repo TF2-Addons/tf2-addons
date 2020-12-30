@@ -104,10 +104,9 @@ class ConsoleParse extends EventEmitter
                     return;
                 }
                 
-                // If it's not part of the status
-                if(this.statusFlag.found ||
-                    line === 'tf2addons-end-status' ||
-                    ((Date.now() - this.statusFlag.lookTime) > 1500))
+                // Get to here if it's not part of the status
+                // If the start of the status has already been found or if too long has passed, assume there is no status
+                if(this.statusFlag.found || ((Date.now() - this.statusFlag.lookTime) > 1000))
                 {
                     this.statusFlag = {looking: false, found: false};
                     this.emit('status', this.statusTemp);

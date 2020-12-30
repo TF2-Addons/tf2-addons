@@ -148,7 +148,7 @@ class GameState extends EventEmitter
         {
             consoleParse.once('status', resolve);
             consoleParse.flagStatusCheck();
-            rconManager.send('status; wait 60; echo tf2addons-end-status');
+            rconManager.send('status');
         });
     }
     
