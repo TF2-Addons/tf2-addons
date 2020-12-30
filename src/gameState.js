@@ -142,6 +142,13 @@ class GameState extends EventEmitter
         return lines.splice(2, lines.length - 3);
     }
     
+    async getPos()
+    {
+        const lines = (await rconManager.send('getpos')).split('\n')[0].split(';');
+        const [pos, ang] = lines.map(line => line.split(' ').slice(1).map(value => Number(value)));
+        return {pos, ang};
+    }
+    
     async getStatus()
     {
         return new Promise((resolve, reject) =>

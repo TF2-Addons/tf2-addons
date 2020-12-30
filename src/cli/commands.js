@@ -45,3 +45,9 @@ vorpal.command('lobby', 'Get game lobby').action(async function(args, callback)
     this.log(await gameState.getLobbyDebug());
     callback();
 });
+
+vorpal.command('pos', 'Get position').action(async function(args, callback)
+{
+    this.log(await gameState.getPos());
+    callback();
+});
