@@ -105,7 +105,9 @@ class ConsoleParse extends EventEmitter
                 }
                 
                 // If it's not part of the status
-                if(this.statusFlag.found || line === 'tf2addons-end-status')
+                if(this.statusFlag.found ||
+                    line === 'tf2addons-end-status' ||
+                    ((Date.now() - this.statusFlag.lookTime) > 1500))
                 {
                     this.statusFlag = {looking: false, found: false};
                     this.emit('status', this.statusTemp);
@@ -179,6 +181,12 @@ class ConsoleParse extends EventEmitter
                 return;
             }
         });
+    }
+    
+    flagStatusCheck()
+    {
+        this.statusFlag.looking = true;
+        this.statusFlag.lookTime = Date.now();
     }
     
     parseChat(text)
