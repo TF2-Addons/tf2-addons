@@ -17,7 +17,7 @@ class ConsoleParse extends EventEmitter
         this.nameIdRegex = new RegExp('#\\s*(\\d+)\\s*"(.+)"');
         this.statusLabels = ['hostname', 'version', 'udp/ip', 'steamid', 'account', 'map', 'tags', 'players', 'edicts'];
         this.statusTemp = {meta: {}, players: []};
-        this.statusFlag = false;
+        this.statusFlag = {looking: false, found: false};
     }
     
     begin(replacements)
@@ -80,13 +80,14 @@ class ConsoleParse extends EventEmitter
             }
             
             // See if currently parsing status
-            if(this.statusFlag)
+            if(this.statusFlag.looking)
             {
                 // Check first part of status
                 for(const statusLabel of this.statusLabels)
                 {
                     if(line.startsWith(statusLabel))
                     {
+                        this.statusFlag.found = true;
                         this.statusTemp.meta[statusLabel] = line.substring(line.indexOf(': ') + 2);
                         return;
                     }
@@ -103,9 +104,9 @@ class ConsoleParse extends EventEmitter
                     return;
                 }
                 
-                if(line === 'tf2addons-end-status')
+                if(this.statusFlag.found)
                 {
-                    this.statusFlag = false;
+                    this.statusFlag = {looking: false, found: false};
                     this.emit('status', this.statusTemp);
                     this.statusTemp = {meta: {}, players: []};
                 }

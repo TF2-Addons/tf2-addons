@@ -51,8 +51,28 @@ class GameState extends EventEmitter
                     player.team = lobby.members.filter(member => member.id === player.id);
                     return player;
                 });
-                const playersJoined = newPlayers.filter(newPlayer => this.players.filter(oldPlayer => oldPlayer.id === newPlayer.id).length > 0);
-                const playersLeft = this.players.filter(oldPlayer => newPlayers.filter(newPlayer => newPlayer.id === oldPlayer.id).length === 0);
+                const playersJoined = newPlayers.filter(newPlayer =>
+                {
+                    for(const oldPlayer of this.players)
+                    {
+                        if(oldPlayer.id === newPlayer.id)
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                const playersLeft = this.players.filter(oldPlayer =>
+                {
+                    for(const newPlayer of newPlayers)
+                    {
+                        if(newPlayer.id === oldPlayer.id)
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
                 for(const joined of playersJoined)
                 {
                     this.emit('player-join', joined);
@@ -66,7 +86,7 @@ class GameState extends EventEmitter
                 this.emit('status', statusData.meta);
             }
             catch(ignored) {}
-        }, 1500);
+        }, 2000);
     }
     
     clearGame()
@@ -102,7 +122,7 @@ class GameState extends EventEmitter
         return new Promise((resolve, reject) =>
         {
             consoleParse.once('status', resolve);
-            consoleParse.statusFlag = true;
+            consoleParse.statusFlag.looking = true;
             rconManager.send('status; wait 20; echo tf2addons-end-status');
         });
     }
