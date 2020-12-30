@@ -87,6 +87,7 @@ const gameState = require('./gameState');
     {
         logger.info(`Leave: ${player.name}`);
     });
+    gameState.beginMonitor();
     
     //TODO add option
     const syncTauntOnKill = true;

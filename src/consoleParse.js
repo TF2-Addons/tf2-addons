@@ -104,7 +104,8 @@ class ConsoleParse extends EventEmitter
                     return;
                 }
                 
-                if(this.statusFlag.found)
+                // If it's not part of the status
+                if(this.statusFlag.found || line === 'tf2addons-end-status')
                 {
                     this.statusFlag = {looking: false, found: false};
                     this.emit('status', this.statusTemp);

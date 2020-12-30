@@ -2,6 +2,7 @@ const rconManager = require('./rconManager');
 const consoleParse = require('./consoleParse');
 const logger = require('./logger');
 const EventEmitter = require('events').EventEmitter;
+const awaitTimeout = require('./awaitTimeout');
 
 class GameState extends EventEmitter
 {
@@ -15,78 +16,102 @@ class GameState extends EventEmitter
         this.players = [];
         this.chat = [];
         this.status = null;
+        this.monitorStatus = false;
         
         consoleParse.on('kill', killData =>
         {
             this.kills.push(killData);
         });
-        
-        setInterval(async () =>
-        {
-            try
-            {
-                const lobby = await this.getLobbyDebug();
-                if(lobby === null)
-                {
-                    if(this.status !== null)
-                    {
-                        logger.warn('Clearing game for bad lobby');
-                    }
-                    this.clearGame();
-                    return;
-                }
-                const statusData = await this.getStatus();
-                if(statusData.players.length === 0)
-                {
-                    if(this.status !== null)
-                    {
-                        logger.warn('Clearing game for bad status');
-                    }
-                    this.clearGame();
-                    return;
-                }
+    }
     
-                const newPlayers = statusData.players.map(player =>
-                {
-                    player.team = lobby.members.filter(member => member.id === player.id);
-                    return player;
-                });
-                const playersJoined = newPlayers.filter(newPlayer =>
-                {
-                    for(const oldPlayer of this.players)
-                    {
-                        if(oldPlayer.id === newPlayer.id)
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                });
-                const playersLeft = this.players.filter(oldPlayer =>
-                {
-                    for(const newPlayer of newPlayers)
-                    {
-                        if(newPlayer.id === oldPlayer.id)
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                });
-                for(const joined of playersJoined)
-                {
-                    this.emit('player-join', joined);
-                }
-                for(const left of playersLeft)
-                {
-                    this.emit('player-leave', left);
-                }
-                this.players = newPlayers;
-                this.emit('players', newPlayers);
-                this.emit('status', statusData.meta);
+    beginMonitor()
+    {
+        (async () =>
+        {
+            if(this.monitorStatus)
+            {
+                return;
             }
-            catch(ignored) {}
-        }, 2000);
+            this.monitorStatus = true;
+            
+            let statusBadCount = 0;
+            const statusBadMax = 3;
+            while(this.monitorStatus)
+            {
+                await awaitTimeout(2000);
+                try
+                {
+                    // Check if in a lobby (casual mode server)
+                    const lobby = await this.getLobbyDebug();
+                    if(lobby === null)
+                    {
+                        if(this.status !== null)
+                        {
+                            logger.warn('Clearing game for bad lobby');
+                        }
+                        this.clearGame();
+                        continue;
+                    }
+                    // Get the status
+                    const statusData = await this.getStatus();
+                    if(statusData.players.length === 0)
+                    {
+                        statusBadCount++;
+                        logger.warn(`${statusBadCount} bad status`);
+                        if(statusBadCount === statusBadMax)
+                        {
+                            if(this.status !== null)
+                            {
+                                logger.warn('Clearing game for bad status');
+                            }
+                            this.clearGame();
+                        }
+                        continue;
+                    }
+                    statusBadCount = 0;
+        
+                    const newPlayers = statusData.players.map(player =>
+                    {
+                        player.team = lobby.members.filter(member => member.id === player.id);
+                        return player;
+                    });
+                    const playersJoined = newPlayers.filter(newPlayer =>
+                    {
+                        for(const oldPlayer of this.players)
+                        {
+                            if(oldPlayer.id === newPlayer.id)
+                            {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    const playersLeft = this.players.filter(oldPlayer =>
+                    {
+                        for(const newPlayer of newPlayers)
+                        {
+                            if(newPlayer.id === oldPlayer.id)
+                            {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    for(const joined of playersJoined)
+                    {
+                        this.emit('player-join', joined);
+                    }
+                    for(const left of playersLeft)
+                    {
+                        this.emit('player-leave', left);
+                    }
+                    this.players = newPlayers;
+                    this.emit('players', newPlayers);
+                    this.emit('status', statusData.meta);
+                }
+                catch(ignored) {}
+            }
+        })();
     }
     
     clearGame()
@@ -123,7 +148,7 @@ class GameState extends EventEmitter
         {
             consoleParse.once('status', resolve);
             consoleParse.statusFlag.looking = true;
-            rconManager.send('status; wait 20; echo tf2addons-end-status');
+            rconManager.send('status; wait 60; echo tf2addons-end-status');
         });
     }
     
