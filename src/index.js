@@ -19,30 +19,34 @@ const gameState = require('./gameState');
         return;
     }
     logger.info('Finished connecting to rcon');
-    //await rconManager.send('con_filter_enable 1');
-    //await rconManager.send('con_filter_text "tf2addons-ui"');
-    //await rconManager.send('developer 1');
     
     const replacements = await updateLocalizations();
     logger.info('Updated localizations');
     
     await syncClient.connect('wss://tf2addons.techchrism.me');
-    syncClient.on('data', data =>
+    let killStarted = null;
+    syncClient.on('data', async data =>
     {
         if(data.action)
         {
             logger.info(`Got action from sync server: ${data.action}`);
         }
-        
+        if(killStarted !== null)
+        {
+            logger.info(`Took ${Date.now() - killStarted}ms for kill sync response`);
+            killStarted = null;
+        }
+    
+        const started = Date.now();
         if(data.action === 'taunt')
         {
-            rconManager.send('-attack');
-            rconManager.send('taunt');
+            await rconManager.send('-attack; taunt');
         }
         else if(data.action === 'kill')
         {
-            rconManager.send('kill');
+            await rconManager.send('kill');
         }
+        logger.info(`Took ${Date.now() - started}ms to send ${data.action}`);
     });
     logger.info('Connected to sync server');
     
@@ -89,10 +93,12 @@ const gameState = require('./gameState');
     if(syncTauntOnKill)
     {
         const name = await gameState.getName();
-        consoleParse.on('kill', ({killer}) =>
+        consoleParse.on('kill', ({killer, killed}) =>
         {
             if(killer === name)
             {
+                killStarted = Date.now();
+                logger.info(`Killed ${killed} at ${killStarted}`);
                 syncClient.send({action: 'taunt'});
             }
         });
