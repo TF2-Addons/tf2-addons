@@ -122,7 +122,7 @@ const gameState = require('./gameState');
             if(killer === name)
             {
                 killStarted = Date.now();
-                logger.info(`Killed ${killed} at ${killStarted} (pos: ${})`);
+                logger.info(`Killed ${killed} at ${killStarted} (pos: ${gameState.pos})`);
                 syncClient.send({action: 'taunt', position: gameState.pos.pos});
             }
         });
