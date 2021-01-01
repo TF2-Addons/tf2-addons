@@ -18,6 +18,14 @@ const gameState = require('./gameState');
         logger.error('Could not connect to rcon. Make sure TF2 is running with the right arguments');
         return;
     }
+    rconManager.on('disconnect', () =>
+    {
+        logger.error('Disconnected from rcon!');
+    });
+    rconManager.on('error', err =>
+    {
+        logger.error('Rcon error!', err);
+    });
     logger.info('Finished connecting to rcon');
     
     const replacements = await updateLocalizations();

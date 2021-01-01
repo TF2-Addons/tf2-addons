@@ -23,6 +23,11 @@ class RconManager extends EventEmitter
             this.emit('disconnect');
             this.connected = false;
         });
+        this.rcon.on('error', err =>
+        {
+            this.emit('error', err);
+            this.connected = false;
+        });
         await this.rcon.connect();
     }
     
