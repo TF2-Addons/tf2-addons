@@ -1,7 +1,7 @@
 const {createLogger, format, transports} = require('winston');
 const {combine, timestamp, printf} = format;
 require('winston-daily-rotate-file');
-const {VorpalTransport} = require('./cli/vorpalManager');
+const {BlessedTransport} = require('./cli/blessedManager');
 
 const fileTransport = new (transports.DailyRotateFile)({
     filename: '%DATE%.log',
@@ -18,7 +18,7 @@ const logger = createLogger({
         myFormat
     ),
     transports: [
-        new VorpalTransport(),
+        new BlessedTransport(),
         fileTransport
     ]
 });

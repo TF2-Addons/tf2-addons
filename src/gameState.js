@@ -27,6 +27,12 @@ class GameState extends EventEmitter
     
     beginMonitor()
     {
+        if(this.monitorStatus)
+        {
+            return;
+        }
+        this.monitorStatus = true;
+        
         (async () =>
         {
             while(this.monitorStatus)
@@ -39,12 +45,6 @@ class GameState extends EventEmitter
         
         (async () =>
         {
-            if(this.monitorStatus)
-            {
-                return;
-            }
-            this.monitorStatus = true;
-            
             let statusBadCount = 0;
             const statusBadMax = 3;
             while(this.monitorStatus)

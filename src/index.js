@@ -3,9 +3,10 @@ const {updateLocalizations} = require('./updateLocalizations');
 const consoleParse = require('./consoleParse');
 const syncClient = require('./syncClient');
 const logger = require('./logger');
-const {onCLIReady} = require('./cli/vorpalManager');
-require('./cli/commands');
+//const {onCLIReady} = require('./cli/vorpalManager');
+//require('./cli/commands');
 const gameState = require('./gameState');
+const {dataToDisplay} = require('./cli/blessedManager');
 
 (async () =>
 {
@@ -123,6 +124,22 @@ const gameState = require('./gameState');
     {
         logger.info(`Leave: ${player.name}`);
     });
+    gameState.on('pos', pos =>
+    {
+        dataToDisplay.pos = pos.pos;
+        dataToDisplay.ang = pos.ang;
+        dataToDisplay.lastPosUpdate = Date.now();
+    });
+    gameState.on('players', players =>
+    {
+        dataToDisplay.players = players;
+        dataToDisplay.lastPlayersUpdate = Date.now();
+    });
+    gameState.on('status', status =>
+    {
+        dataToDisplay.status = status;
+        dataToDisplay.lastStatusUpdate = Date.now();
+    });
     gameState.beginMonitor();
     
     //TODO add option
@@ -141,6 +158,4 @@ const gameState = require('./gameState');
             }
         });
     }
-    
-    onCLIReady();
 })();

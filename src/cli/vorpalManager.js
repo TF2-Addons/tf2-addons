@@ -7,7 +7,6 @@ class VorpalTransport extends Transport
     constructor(opts)
     {
         super(opts);
-        this.vorpal = vorpal;
     }
     
     log(info, callback)
