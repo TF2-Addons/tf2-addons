@@ -53,6 +53,10 @@ const gameState = require('./gameState');
                         Math.pow(data.position[0] - gameState.pos.pos[0], 2) +
                         Math.pow(data.position[1] - gameState.pos.pos[1], 2) +
                         Math.pow(3 * (data.position[2] - gameState.pos.pos[2]), 2));
+                    if(isNaN(distance))
+                    {
+                        logger.warn(`Invalid distance! data.position: ${JSON.stringify(data.position)}  gamestate: ${JSON.stringify(gameState.pos.pos)}`)
+                    }
                     const minDistance = 450;
                     logger.info(`Distance from taunt source was ${distance} (${distance <= minDistance ? 'good' : 'far'})`);
                     if(distance <= minDistance)
@@ -118,6 +122,7 @@ const gameState = require('./gameState');
     if(syncTauntOnKill)
     {
         const name = await gameState.getName();
+        logger.info(`Got name as "${name}"`);
         consoleParse.on('kill', ({killer, killed}) =>
         {
             if(killer === name)

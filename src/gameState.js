@@ -156,8 +156,26 @@ class GameState extends EventEmitter
     
     async getPos()
     {
-        const lines = (await rconManager.send('getpos')).split('\n')[0].split(';');
-        const [pos, ang] = lines.map(line => line.split(' ').slice(1).map(value => Number(value)));
+        const data = await rconManager.send('getpos');
+        const lines = data.split('\n')[0].split(';');
+        let [pos, ang] = lines.map(line => line.split(' ').slice(1).map(value =>
+        {
+            const num = Number(value);
+            if(isNaN(num))
+            {
+                logger.warn(`Got invalid position! Data: "${data}"`);
+            }
+            return num;
+        }));
+        if(ang === undefined)
+        {
+            ang = this.pos.ang;
+        }
+        if(pos.length !== 3 ||
+            ang.length !== 3)
+        {
+            logger.warn(`Got invalid lengths (${pos.length}, ${ang.length})! Data: "${data}"`);
+        }
         return {pos, ang};
     }
     
