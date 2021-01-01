@@ -1,5 +1,5 @@
 const {Rcon} = require('rcon-client');
-const awaitTimeout = require('./await-timeout');
+const awaitTimeout = require('./awaitTimeout');
 const EventEmitter = require('events').EventEmitter;
 
 class RconManager extends EventEmitter
@@ -54,10 +54,7 @@ class RconManager extends EventEmitter
                 return data;
             }
             
-            if(delay > 0)
-            {
-                await awaitTimeout(delay);
-            }
+            await awaitTimeout((delay > 0) ? delay : 100);
         }
         return null;
     }

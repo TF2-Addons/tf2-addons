@@ -27,12 +27,15 @@ class GameState extends EventEmitter
     
     beginMonitor()
     {
-        setInterval(async () =>
+        (async () =>
         {
-            // Get the position
-            this.pos = await this.getPos();
-            this.emit('pos', this.pos);
-        }, 500);
+            while(this.monitorStatus)
+            {
+                this.pos = await this.getPos();
+                this.emit('pos', this.pos);
+                await awaitTimeout(500);
+            }
+        })();
         
         (async () =>
         {
@@ -144,7 +147,9 @@ class GameState extends EventEmitter
     
     async getName()
     {
-        const nameLine = (await rconManager.send('name')).split('\n')[0];
+        const nameData = await rconManager.sendReliable('name', data =>
+            data.startsWith('"name" = "') && data.endsWith('Current user name\n'));
+        const nameLine = nameData.split('\n')[0];
         return nameLine.substring(10, nameLine.length - 20);
     }
     
@@ -156,7 +161,8 @@ class GameState extends EventEmitter
     
     async getPos()
     {
-        const data = await rconManager.send('getpos');
+        const data = await rconManager.sendReliable('getpos', data =>
+            data.startsWith('setpos ') && data.indexOf('setang') !== -1);
         const lines = data.split('\n')[0].split(';');
         let [pos, ang] = lines.map(line => line.split(' ').slice(1).map(value =>
         {
