@@ -53,8 +53,9 @@ const gameState = require('./gameState');
                         Math.pow(data.position[0] - gameState.pos.pos[0], 2) +
                         Math.pow(data.position[1] - gameState.pos.pos[1], 2) +
                         Math.pow(3 * (data.position[2] - gameState.pos.pos[2]), 2));
-                    logger.info(`Distance from taunt source was ${distance} (${distance >= 500 ? 'too far' : 'good'})`);
-                    if(distance <= 500)
+                    const minDistance = 450;
+                    logger.info(`Distance from taunt source was ${distance} (${distance <= minDistance ? 'good' : 'far'})`);
+                    if(distance <= minDistance)
                     {
                         await rconManager.send('-attack; taunt');
                     }
@@ -122,7 +123,7 @@ const gameState = require('./gameState');
             if(killer === name)
             {
                 killStarted = Date.now();
-                logger.info(`Killed ${killed} at ${killStarted} (pos: ${gameState.pos})`);
+                logger.info(`Killed ${killed} at ${killStarted} (pos: ${gameState.pos.pos})`);
                 syncClient.send({action: 'taunt', position: gameState.pos.pos});
             }
         });

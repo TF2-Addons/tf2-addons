@@ -27,6 +27,13 @@ class GameState extends EventEmitter
     
     beginMonitor()
     {
+        setInterval(async () =>
+        {
+            // Get the position
+            this.pos = await this.getPos();
+            this.emit('pos', this.pos);
+        }, 500);
+        
         (async () =>
         {
             if(this.monitorStatus)
@@ -58,7 +65,10 @@ class GameState extends EventEmitter
                     if(statusData.players.length === 0)
                     {
                         statusBadCount++;
-                        logger.warn(`${statusBadCount} bad status`);
+                        if(statusBadCount > 1)
+                        {
+                            logger.warn(`${statusBadCount} bad status`);
+                        }
                         if(statusBadCount === statusBadMax)
                         {
                             if(this.status !== null)
@@ -109,10 +119,6 @@ class GameState extends EventEmitter
                     this.players = newPlayers;
                     this.emit('players', newPlayers);
                     this.emit('status', statusData.meta);
-                    
-                    // Get the position
-                    this.pos = await this.getPos();
-                    this.emit('pos', this.pos);
                 }
                 catch(ignored) {}
             }
