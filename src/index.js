@@ -12,7 +12,7 @@ const {dataToDisplay} = require('./cli/blessedManager');
 {
     try
     {
-        await rconManager.connect('localhost', 27015, 'tf2addons');
+        await rconManager.connect('127.0.0.1', 27015, 'tf2addons');
     }
     catch(e)
     {
@@ -28,10 +28,10 @@ const {dataToDisplay} = require('./cli/blessedManager');
         logger.error('Rcon error!', err);
     });
     logger.info('Finished connecting to rcon');
-    
+
     const replacements = await updateLocalizations();
     logger.info('Updated localizations');
-    
+
     await syncClient.connect('wss://tf2addons.techchrism.me');
     let killStarted = null;
     syncClient.on('data', async data =>
@@ -45,7 +45,7 @@ const {dataToDisplay} = require('./cli/blessedManager');
             logger.info(`Took ${Date.now() - killStarted}ms for kill sync response`);
             killStarted = null;
         }
-    
+
         const started = Date.now();
         if(data.action === 'taunt')
         {
@@ -86,23 +86,23 @@ const {dataToDisplay} = require('./cli/blessedManager');
         logger.info(`Took ${Date.now() - started}ms to send ${data.action}`);
     });
     logger.info('Connected to sync server');
-    
+
     consoleParse.begin(replacements);
     consoleParse.on('chat', message =>
     {
         logger.info(`[${message.type}] <${message.name}> ${message.message}`);
     });
-    
+
     consoleParse.on('join', ({name}) =>
     {
         logger.info(`+ ${name}`);
     });
-    
+
     consoleParse.on('connect', ({ip, port}) =>
     {
         logger.info(`Connected to ${ip}:${port}`);
     });
-    
+
     consoleParse.on('addon-data', ({full, data}) =>
     {
         logger.info(`Got addon data ${full}`);
@@ -115,7 +115,7 @@ const {dataToDisplay} = require('./cli/blessedManager');
             syncClient.send({action: 'tauntkill', timeout: data[1]});
         }
     });
-    
+
     gameState.on('player-join', player =>
     {
         logger.info(`Join: ${player.name}`);
@@ -141,7 +141,7 @@ const {dataToDisplay} = require('./cli/blessedManager');
         dataToDisplay.lastStatusUpdate = Date.now();
     });
     gameState.beginMonitor();
-    
+
     //TODO add option
     const syncTauntOnKill = true;
     if(syncTauntOnKill)
